@@ -1,0 +1,23 @@
+{
+  "name": "ts-omen",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "npm run build && node dist/index.js",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^26.0.23",
+    "jest": "^27.0.3",
+    "ts-jest": "^27.0.1"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "typescript": "^4.3.2",
+    "@types/node": "^15.6.1"
+  }
+}
