@@ -36,7 +36,7 @@ export class Challenge {
                 return this.getResultList(res)
             }
         ).catch((error)=>{
-            console.log(error.response.data);
+            throw error.response.data.error;        
         });  
     }
 
@@ -46,7 +46,7 @@ export class Challenge {
     public join(campaignId:string, challengeStructureId:string):Promise<any> {
         let joinPost:JoinBody = new JoinBody(this.sessionId, campaignId, challengeStructureId);
         return axios.post(apiUrl, joinPost).catch((error)=>{
-            console.log(error.response.data);
+            throw error.response.data.error;
         });  
     }
 
@@ -60,7 +60,7 @@ export class Challenge {
                 return this.getResultList(res)
             }
         ).catch((error)=>{
-            console.log(error.response.data);
+            throw error.response.data.error;
         });  
     }
 
@@ -71,7 +71,7 @@ export class Challenge {
         let taskPost:TaskBody = new TaskBody(this.sessionId, eventName);
         console.log(`开始执行 ${eventName}`);
         return axios.post(apiUrl, taskPost).catch((error)=>{
-            console.log(error.response.data);
+            throw error.response.data.error;
         });  
     }
 };

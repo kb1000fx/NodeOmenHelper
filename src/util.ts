@@ -1,5 +1,5 @@
-
-const crypto = require('crypto');
+import crypto from 'crypto'
+import readline from 'readline'
 
 function UUIDtoByteArray(uuid:string):Uint8Array{
     let text = uuid.replace(/-/g, "");
@@ -24,7 +24,21 @@ function sign(text:Uint8Array, array:Uint8Array):string{
     return res
 }
 
+function inputSessionID():Promise<string> {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    return new Promise((resolve)=>{
+        rl.question('请输入SessionToken: ', (answer:string) => {   
+            rl.close(); 
+            resolve(answer);
+        })
+    });   
+}
+
 export default  {
     UUIDtoByteArray,
     sign,
+    inputSessionID,
 }

@@ -1,31 +1,33 @@
-import readline from 'readline'
+import util from './util'
 import { Challenge } from './omen'
-
-function inputSessionID():Promise<string> {
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-    return new Promise((resolve)=>{
-        rl.question('请输入SessionID: ', (answer:string) => {   
-            rl.close(); 
-            resolve(answer);
-        })
-    });   
-}
 
 
 (async function(){
     let sessionId:string;
+    let sessionFlag:boolean =true;
+
+    let challenge:Challenge = new Challenge('');
+    let allList:Array<any> = new Array();
+
     if(process.argv.length>2){
         sessionId = process.argv[2]
     }else{
-        sessionId = await inputSessionID()
+        sessionId = await util.inputSessionID()
     }
 
-    let challenge:Challenge = new Challenge(sessionId);
-    console.log('获取可参与挑战列表...')
-    let allList = await challenge.getAllList()
+    while (sessionFlag) {
+        try {
+            sessionFlag = false;
+            challenge = new Challenge(sessionId);
+            console.log('获取可参与挑战列表...');
+            allList = await challenge.getAllList();  
+        } catch (error) {
+            sessionFlag = true;
+            console.log(`Session过期或无效，请重新输入`)
+            sessionId = await util.inputSessionID()
+        }     
+    }
+    
     console.log(`可加入的挑战数: ${allList.length}`)
     for (const cha of allList) {
         await challenge.join(cha.campaignId, cha.challengeStructureId);
