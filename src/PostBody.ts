@@ -2,20 +2,6 @@ import util from "./util";
 
 const applicationId = "6589915c-6aa7-4f1b-9ef5-32fa2220c844";
 
-interface Params {
-    /*
-    sessionToken:string,
-    applicationId:string,
-    page:number,
-    pageSize:number,
-    sdk:string,
-    sdkVersion:string,
-    appDefaultLanguage:string,
-    userPreferredLanguage:string,
-    */
-    [propName: string]: any
-}
-
 class PostBody {
     public readonly jsonrpc:string = "2.0";
 
@@ -23,7 +9,7 @@ class PostBody {
 
     public method = "";
 
-    public params:Params;
+    public params:Record<string,any>;
 
     constructor(sessionId:string) {
         this.params = {
@@ -81,7 +67,7 @@ export class TaskBody extends PostBody {
 
     private getSignature():string {
         const array:Uint8Array = util.UUIDtoByteArray(this.params.applicationId);
-        const array2:Uint8Array = util.UUIDtoByteArray(this.params.sessionId);
+        const array2:Uint8Array = util.UUIDtoByteArray(this.params.sessionToken);
         const array3:Uint8Array = new Uint8Array(16);
         for (let i = 0; i < 16; i += 1) {
             if (i < 8) {
