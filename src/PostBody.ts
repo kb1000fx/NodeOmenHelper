@@ -1,4 +1,4 @@
-import util from "./util";
+import util from "./Util";
 
 const applicationId = "6589915c-6aa7-4f1b-9ef5-32fa2220c844";
 
@@ -7,11 +7,11 @@ class PostBody {
 
     public readonly id:string = applicationId;
 
-    public method = "";
+    public method:string = "";
 
     public params:Record<string,any>;
 
-    constructor(sessionId:string) {
+    constructor(sessionId?:string) {
         this.params = {
             sessionToken: sessionId,
             applicationId,
@@ -90,5 +90,22 @@ export class TaskBody extends PostBody {
             array[index] = buf[index];
         }
         return array;
+    }
+}
+
+export class HandshakeBody extends PostBody {
+    constructor(userToken:string){
+        super();
+        this.method = "mobile.accounts.v1.handshake";
+        this.params.userToken = userToken;
+    }
+}
+
+export class StartBody extends PostBody {
+    constructor(accountToken:string, externalPlayerId:string){
+        super();
+        this.method = "mobile.sessions.v2.start";
+        this.params.accountToken = accountToken;
+        this.params.externalPlayerId = externalPlayerId;
     }
 }

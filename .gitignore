@@ -77,3 +77,4 @@ typings/
 
 dist/
 .vscode/
+config.json

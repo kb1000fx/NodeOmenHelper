@@ -1,10 +1,10 @@
-import util from "./util";
+import util from "./Util";
 import axios from "axios";
-var HttpsProxyAgent = require('https-proxy-agent');
+import { HandshakeBody, StartBody } from "./PostBody"
 
 const url = 'https://oauth.hpbp.io/oauth/v1/auth';
 const backendUrl = "https://ui-backend.id.hp.com/bff/v1/auth/session";
-
+const sessionUrl1 = 'https://www.hpgamestream.com/api/thirdParty/session/temporaryToken?applicationId=6589915c-6aa7-4f1b-9ef5-32fa2220c844';
 
 class Login {
     public email:string = "";
@@ -15,7 +15,9 @@ class Login {
 
     public cookie:string = "";
 
-    public state:string = 'G5g495-R4cEE'+ (Math.random()*100000);
+    public loginAddr:string = "";
+
+    public state:string = '6W-6YnRulaSczbZa_gxbAxd-XEJdOWn9jV86Ow493IM'//'G5g495-R4cEE'+ (Math.random()*100000);
 
     private readonly applicationId:string = "6589915c-6aa7-4f1b-9ef5-32fa2220c844";
 
@@ -44,7 +46,7 @@ class Login {
                 'client_id': '130d43f1-bb22-4a9c-ba48-d5743e84d113', 
                 'redirect_uri': 'http://localhost:9080/login', 
                 'scope': 'email profile offline_access openid user.profile.write user.profile.username user.profile.read', 
-                'state': this.state,//'v0PLVJ_KeVo0n_j25Tqsv0sJM5NtPu8NvCsBcwR7Nt4'
+                'state': this.state,
                 'max_age': '28800', 
                 'acr_values': 'urn:hpbp:hpid', 
                 'prompt': 'consent'
@@ -57,18 +59,17 @@ class Login {
         const res = await axios.post(backendUrl, {flow:flow});
         const cookieSet = res.headers['set-cookie'][0];
         this.cookie = cookieSet.split(';')[0];
-        this.backendCsrf = res.data.csrfToken
+        this.backendCsrf = res.data.csrfToken;
+        this.loginAddr = res.data.regionEndpointUrl;
     }
 
     /**
      * webLogin
      */
     public async webLogin():Promise<string> {
-        const loginAddr = "https://ui-backend.us-west-2.id.hp.com/bff/v1/session/username-password";
-        const httpProxyAgent = new HttpsProxyAgent('http://127.0.0.1:1080');
-
         const nextUrl:string = await axios.request({
-            url: loginAddr,     
+            url: '/session/username-password',    
+            baseURL: this.loginAddr, 
             method: 'POST',
             headers: {
                 "Content-Type": "application/json;charset=utf-8",
@@ -78,8 +79,7 @@ class Login {
             data: {
                 username: this.email + '@hpid',
                 password: this.pwd
-            },      
-            //httpsAgent: httpProxyAgent     
+            },         
         }).then((res)=>{
             return res.data.nextUrl
         }).catch((e)=>{
@@ -99,16 +99,52 @@ class Login {
     /**
      * clientLogin
      */
-    public clientLogin(localhostUrl:string) {
+    public async clientLogin(localhostUrl:string):Promise<string> {     
+        const urlQuery:URL = new URL(localhostUrl);
+        const code:string|null = urlQuery.searchParams.get('code');
 
-        
+        const accessToken = await axios.request({
+            url: "https://oauth.hpbp.io/oauth/v1/token",    
+            method: 'POST',
+            data: 'grant_type=authorization_code&code='+code+'&client_id=130d43f1-bb22-4a9c-ba48-d5743e84d113&redirect_uri=http://localhost:9080/login',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+
+        }).then(res=>{
+            return res.data.access_token
+        });
+
+        return accessToken    
     }
 
     /**
      * genSession
      */
-    public genSession(authorization:string) {
-        
+    public async genSession(authorization:string):Promise<string> {
+        const tmpToken:string = await axios.get(sessionUrl1, {
+            headers: {
+                Authorization: "Bearer " + authorization
+            }
+        }).then(res=>{
+            return res.data.token
+        });
+
+        const handshakeBody:HandshakeBody = new HandshakeBody(tmpToken);
+        const { accountToken, externalPlayerId } = await axios.post("https://rpc-prod.versussystems.com/rpc",handshakeBody).then(res=>{
+            return { 
+                accountToken: res.data.result.token, 
+                externalPlayerId: res.data.result.players[0].externalPlayerId
+            }
+        });
+
+        const startBody:StartBody = new StartBody(accountToken, externalPlayerId);
+        const sessionToken:string = await axios.post("https://rpc-prod.versussystems.com/rpc",startBody).then(res=>{
+            return res.data.result.sessionId
+        });
+
+        return sessionToken
     }
 }
 

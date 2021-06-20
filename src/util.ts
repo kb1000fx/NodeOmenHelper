@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import readline from "readline";
+import fs from 'fs';
 
 function UUIDtoByteArray(uuid:string):Uint8Array {
     const text = uuid.replace(/-/g, "");
@@ -37,8 +38,15 @@ function inputVal(str:string):Promise<string> {
     });
 }
 
+function readConfig(path:string='config.json') {
+    const config = JSON.parse(fs.readFileSync(path, "utf8"));
+    return config
+    
+}
+
 export default {
     UUIDtoByteArray,
     sign,
     inputVal,
+    readConfig,
 };
