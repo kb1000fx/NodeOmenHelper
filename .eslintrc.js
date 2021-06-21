@@ -33,6 +33,8 @@ module.exports = {
         "no-restricted-syntax": "off",
         "prefer-destructuring": ["error", {"object": true, "array": false}],
         "max-classes-per-file": "off",
+        "max-len": ["error", { "code": 200, "ignoreStrings": true }],
+        "class-methods-use-this": "off",
     },   
     settings: {
         "import/resolver": {

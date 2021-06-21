@@ -1,77 +1,51 @@
-import axios from "axios";
-import {
-    AllListBody, JoinBody, CurrentListBody, TaskBody,
-} from "./PostBody";
+import Challenge from "./lib/Challenge";
+import Login from "./lib/Login";
 
-const apiUrl = "https://rpc-prod.versussystems.com/rpc";
+export async function doTaskViaSession(sessionId:string, time:number = 45, index:number = 1):Promise<boolean> {
+    const challenge = new Challenge(sessionId);
+    console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, "获取可参与挑战列表...");
 
-class Challenge {
-    public sessionId:string;
+    const allList = await challenge.getAllList();
+    console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, `可加入的挑战数: ${allList.length}`);
 
-    constructor(sessionId:string) {
-        this.sessionId = sessionId;
+    for (const cha of allList) {
+        await challenge.join(cha.campaignId, cha.challengeStructureId);
+        console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, `加入挑战 ${cha.relevantEvents}`);
     }
 
-    static getResultList(res:any) {
-        const { collection } = res.data.result;
-        const resultList = [];
-        for (const activity of collection) {
-            if (activity.prize.category === "sweepstake") {
-                const result = {
-                    campaignId: activity.prize.campaignId,
-                    challengeStructureId: activity.challengeStructureId,
-                    relevantEvents: activity.relevantEvents[0],
-                };
-                resultList.push(result);
-            }
+    const currentList = await challenge.getCurrentList();
+    console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, `待完成任务数: ${currentList.length}`);
+
+    let flag:boolean = true;
+    for (const cha of currentList) {
+        const state = await challenge.doTask(cha.relevantEvents, time, index);
+        if (state === "running") {
+            flag = false;
         }
-        return resultList;
     }
 
-    /**
-     * getAllList
-     */
-    public getAllList():Promise<any> {
-        const allListPost:AllListBody = new AllListBody(this.sessionId);
-        return axios.post(apiUrl, allListPost).then(
-            (res) => Challenge.getResultList(res),
-        ).catch((error) => {
-            throw error.response.data.error;
-        });
-    }
-
-    /**
-     * join
-     */
-    public join(campaignId:string, challengeStructureId:string):Promise<any> {
-        const joinPost:JoinBody = new JoinBody(this.sessionId, campaignId, challengeStructureId);
-        return axios.post(apiUrl, joinPost).catch((error) => {
-            throw error.response.data.error;
-        });
-    }
-
-    /**
-     * getCurrentList
-     */
-    public getCurrentList():Promise<any> {
-        const currentListPost:CurrentListBody = new CurrentListBody(this.sessionId);
-        return axios.post(apiUrl, currentListPost).then(
-            (res) => Challenge.getResultList(res),
-        ).catch((error) => {
-            throw error.response.data.error;
-        });
-    }
-
-    /**
-     * doTask
-     */
-    public doTask(eventName:string) {
-        const taskPost:TaskBody = new TaskBody(this.sessionId, eventName);
-        console.log(`开始执行 ${eventName}`);
-        return axios.post(apiUrl, taskPost).catch((error) => {
-            throw error.response.data.error;
-        });
-    }
+    return flag;
 }
 
-export default Challenge;
+export async function doTaskViaAccount(email:string, pwd:string, time:number = 45, index:number = 1):Promise<boolean> {
+    const login = new Login(email, pwd);
+    await login.webPrepare();
+    const localhostUrl = await login.webLogin();
+    const accessToken = await login.clientLogin(localhostUrl);
+    const session = await login.genSession(accessToken);
+    return doTaskViaSession(session, time, index);
+}
+
+export async function doTaskViaFile(config:Record<string, any>) {
+    let flag:boolean = true;
+    for (let index = 0; index < config.accounts.length; index += 1) {
+        const account = config.accounts[index];
+        console.log("\x1b[32m%s\x1b[0m", `账号${index + 1}：开始`);
+        const state = await doTaskViaAccount(account.email, account.password, config.defaultPlayTime, index + 1);
+        if (!state) {
+            flag = state;
+        }
+        console.log("\x1b[32m%s\x1b[0m", `账号${index + 1}：完毕`);
+    }
+    return flag;
+}

@@ -1,44 +1,27 @@
-import util from "./Util";
-import Challenge from "./omen";
+import Util from "./lib/Util";
+import { doTaskViaSession, doTaskViaAccount, doTaskViaFile } from "./omen";
 
 async function main() {
-    let sessionId:string;
-    let sessionFlag = true;
-
-    let challenge:Challenge = new Challenge("");
-    let allList:Array<any> = [];
+    const config = Util.readConfig();
 
     if (process.argv.length > 2) {
-        sessionId = process.argv[2];
-    } else {
-        sessionId = await util.inputVal("SessionToken");
-    }
+        await doTaskViaSession(process.argv[2]);
+    } else if (config) {
+        console.log("\x1b[36m%s\x1b[0m", `共${config.accounts.length}个账号`);
+        const flag:boolean = await doTaskViaFile(config);
 
-    while (sessionFlag) {
-        try {
-            sessionFlag = false;
-            challenge = new Challenge(sessionId);
-            console.log("获取可参与挑战列表...");
-            allList = await challenge.getAllList();
-        } catch (error) {
-            sessionFlag = true;
-            console.log("Session过期或无效，请重新输入");
-            sessionId = await util.inputVal("SessionToken");
+        if (!flag) {
+            console.log("\x1b[36m%s\x1b[0m", "未完成");
+            await Util.sleep(45.02);
+            await doTaskViaFile(config);
         }
-    }
 
-    console.log(`可加入的挑战数: ${allList.length}`);
-    for (const cha of allList) {
-        await challenge.join(cha.campaignId, cha.challengeStructureId);
-        console.log(`加入挑战 ${cha.relevantEvents}`);
+        console.log("\x1b[36m%s\x1b[0m", "所有账号完毕");
+    } else {
+        const email:string = await Util.inputVal("E-Mail");
+        const pwd:string = await Util.inputVal("密码");
+        await doTaskViaAccount(email, pwd);
     }
-
-    const currentList = await challenge.getCurrentList();
-    console.log(`待完成任务数: ${currentList.length}`);
-    for (const cha of currentList) {
-        challenge.doTask(cha.relevantEvents);
-    }
-    console.log("任务完成");
 }
 
 main();

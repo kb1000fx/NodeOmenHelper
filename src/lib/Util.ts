@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import readline from "readline";
-import fs from 'fs';
+import fs from "fs";
 
 function UUIDtoByteArray(uuid:string):Uint8Array {
     const text = uuid.replace(/-/g, "");
@@ -38,10 +38,28 @@ function inputVal(str:string):Promise<string> {
     });
 }
 
-function readConfig(path:string='config.json') {
-    const config = JSON.parse(fs.readFileSync(path, "utf8"));
-    return config
-    
+function readConfig(path:string = "config.json"):Record<string, any>|undefined {
+    try {
+        return JSON.parse(fs.readFileSync(path, "utf8"));
+    } catch (error) {
+        console.log(error);
+        return undefined;
+    }
+}
+
+function getTimes(time:number):Record<string, string> {
+    const endTime:Date = new Date();
+    const endMils:number = endTime.getTime();
+    const startMils = endMils - 1000 * 60 * time - Math.floor(Math.random() * 100);
+    const startTime:Date = new Date(startMils);
+    return {
+        startedAt: startTime.toISOString(),
+        endedAt: endTime.toISOString(),
+    };
+}
+
+function sleep(time:number) {
+    return new Promise((res) => setTimeout(res, time * 60 * 1000));
 }
 
 export default {
@@ -49,4 +67,6 @@ export default {
     sign,
     inputVal,
     readConfig,
+    getTimes,
+    sleep,
 };

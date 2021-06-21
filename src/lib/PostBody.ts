@@ -1,25 +1,31 @@
-import util from "./Util";
+import Util from "./Util";
 
 const applicationId = "6589915c-6aa7-4f1b-9ef5-32fa2220c844";
 
-class PostBody {
+class BaseBody {
     public readonly jsonrpc:string = "2.0";
 
     public readonly id:string = applicationId;
 
     public method:string = "";
 
-    public params:Record<string,any>;
+    public params:Record<string, any>;
 
-    constructor(sessionId?:string) {
+    constructor() {
         this.params = {
-            sessionToken: sessionId,
             applicationId,
             sdk: "custom01",
             sdkVersion: "3.0.0",
             appDefaultLanguage: "en",
             userPreferredLanguage: "zh-cn",
         };
+    }
+}
+
+class PostBody extends BaseBody {
+    constructor(sessionId:string) {
+        super();
+        this.params.sessionToken = sessionId;
     }
 }
 
@@ -53,21 +59,20 @@ export class CurrentListBody extends PostBody {
 }
 
 export class TaskBody extends PostBody {
-    constructor(sessionId:string, eventName:string) {
+    constructor(sessionId:string, eventName:string, time:number) {
         super(sessionId);
+        const { startedAt, endedAt } = Util.getTimes(time);
         this.method = "mobile.challenges.v2.progressEvent";
         this.params.value = 1;
         this.params.eventName = eventName;
-        const startTime = new Date();
-        startTime.setMinutes(-45);
-        this.params.startedAt = startTime.toISOString();
-        this.params.endedAt = new Date().toISOString();
+        this.params.startedAt = startedAt;
+        this.params.endedAt = endedAt;
         this.params.signature = this.getSignature();
     }
 
     private getSignature():string {
-        const array:Uint8Array = util.UUIDtoByteArray(this.params.applicationId);
-        const array2:Uint8Array = util.UUIDtoByteArray(this.params.sessionToken);
+        const array:Uint8Array = Util.UUIDtoByteArray(this.params.applicationId);
+        const array2:Uint8Array = Util.UUIDtoByteArray(this.params.sessionToken);
         const array3:Uint8Array = new Uint8Array(16);
         for (let i = 0; i < 16; i += 1) {
             if (i < 8) {
@@ -77,7 +82,7 @@ export class TaskBody extends PostBody {
             }
         }
         const text:Uint8Array = this.getSignableText();
-        const res = util.sign(text, array3);
+        const res = Util.sign(text, array3);
         return res;
     }
 
@@ -93,19 +98,23 @@ export class TaskBody extends PostBody {
     }
 }
 
-export class HandshakeBody extends PostBody {
-    constructor(userToken:string){
+export class HandshakeBody extends BaseBody {
+    constructor(userToken:string) {
         super();
         this.method = "mobile.accounts.v1.handshake";
         this.params.userToken = userToken;
     }
 }
 
-export class StartBody extends PostBody {
-    constructor(accountToken:string, externalPlayerId:string){
+export class StartBody extends BaseBody {
+    constructor(accountToken:string, externalPlayerId:string) {
         super();
         this.method = "mobile.sessions.v2.start";
         this.params.accountToken = accountToken;
         this.params.externalPlayerId = externalPlayerId;
+        this.params.location = {
+            latitude: 30.5832367,
+            longitude: 103.982384,
+        };
     }
 }
