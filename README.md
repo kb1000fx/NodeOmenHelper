@@ -20,7 +20,7 @@ npm start <session>
 若不存在`config.json`则会提示收到输入邮箱与密码
 ## 配置文件
 `config.json`需手动创建。但仓库中提供一个模板`config.example.json`，内容如下
-```JSON
+```JSONC
 {
     /* 每次的游戏时长分钟数 */
     "defaultPlayTime": 45,   
