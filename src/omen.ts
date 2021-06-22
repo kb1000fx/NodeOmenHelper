@@ -1,22 +1,22 @@
+import retry from "async-retry";
 import Challenge from "./lib/Challenge";
 import Login from "./lib/Login";
 import Util from "./lib/Util";
-import retry from 'async-retry';
 
-export async function doTaskViaSession(sessionId:string, time:number = 45, index:number = 1):Promise<boolean> {   
+export async function doTaskViaSession(sessionId:string, time:number = 45, index:number = 1):Promise<boolean> {
     const challenge = new Challenge(sessionId);
-    console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, "获取可参与挑战列表...");
+    console.log("\x1b[36m%s\x1b[0m%s", `账号${index}：`, "获取可参与挑战列表...");
 
     const allList = await challenge.getAllList();
-    console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, `可加入的挑战数: ${allList.length}`);
+    console.log("\x1b[36m%s\x1b[0m%s", `账号${index}：`, `可加入的挑战数: ${allList.length}`);
 
     for (const cha of allList) {
         await challenge.join(cha.campaignId, cha.challengeStructureId);
-        console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, `加入挑战 ${cha.relevantEvents}`);
+        console.log("\x1b[36m%s\x1b[0m%s", `账号${index}：`, `加入挑战 ${cha.relevantEvents}`);
     }
 
     const currentList = await challenge.getCurrentList();
-    console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, `待完成任务数: ${currentList.length}`);
+    console.log("\x1b[36m%s\x1b[0m%s", `账号${index}：`, `待完成任务数: ${currentList.length}`);
 
     let flag:boolean = true;
     for (const cha of currentList) {
@@ -42,27 +42,32 @@ export async function doTaskViaFile(config:Record<string, any>) {
     let flag:boolean = true;
     for (let index = 0; index < config.accounts.length; index += 1) {
         const account = config.accounts[index];
-        console.log("\x1b[32m%s\x1b[0m", `账号${index + 1}：开始`);
+        console.log("\x1b[36m%s\x1b[0m", `账号${index + 1}：开始`);
 
         let state:boolean;
         try {
-            state = await retry(async (bail, times)=>{
-                if(times!=1){
-                    console.log(`账号${index+1}失败，正在第${times-1}次重试`)
+            state = await retry(async (bail, times) => {
+                if (times !== 1) {
+                    console.log("\x1b[36m%s\x1b[33m%s\x1b[0m", `账号${index + 1}：`, `任务失败，正在第${times - 1}次重试`);
+                    await Util.sleep(0.5);
                 }
 
                 return doTaskViaAccount(account.email, account.password, config.defaultPlayTime, index + 1);
-            }, {retries: 2});           
+            }, { retries: config.retryTimes });
         } catch (error) {
-            console.log(error);
-            process.exit(-1);
+            if (config.ignoreError) {
+                console.log("\x1b[31m%s\x1b[0m", `账号${index + 1}：已跳过`);
+                continue;
+            } else {
+                console.log(error);
+                process.exit(-1);
+            }
         }
-        
-        
+
         if (!state) {
             flag = state;
         }
-        console.log("\x1b[32m%s\x1b[0m", `账号${index + 1}：完毕`);
+        console.log("\x1b[36m%s\x1b[32m%s\x1b[0m", `账号${index + 1}：`, "完毕");
         await Util.sleep(0.1);
     }
     return flag;

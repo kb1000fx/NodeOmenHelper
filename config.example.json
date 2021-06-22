@@ -1,0 +1,20 @@
+{
+    "defaultPlayTime": 45,
+    "ignoreError": true,
+    "retryTimes": 5,
+    "schedule": "10 * * *",
+    "accounts": [
+        {
+            "email": "123@abc.com",
+            "password": "123456"
+        },
+        {
+            "email": "233@abc.com",
+            "password": "123456"
+        },
+        {
+            "email": "114514@abc.com",
+            "password": "123456"
+        }
+    ]
+}

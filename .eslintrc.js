@@ -35,6 +35,7 @@ module.exports = {
         "max-classes-per-file": "off",
         "max-len": ["error", { "code": 200, "ignoreStrings": true }],
         "class-methods-use-this": "off",
+        "no-continue": "off",
     },   
     settings: {
         "import/resolver": {
