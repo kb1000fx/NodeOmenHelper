@@ -12,7 +12,7 @@ async function main() {
 
         if (!flag) {
             console.log("\x1b[36m%s\x1b[0m", "未完成");
-            await Util.sleep(45.02);
+            await Util.sleep(config.defaultPlayTime);
             await doTaskViaFile(config);
         }
 

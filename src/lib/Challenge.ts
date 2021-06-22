@@ -33,9 +33,7 @@ class Challenge {
      */
     public getAllList():Promise<any> {
         const allListPost:AllListBody = new AllListBody(this.sessionId);
-        return axios.post(apiUrl, allListPost).then((res) => Challenge.getResultList(res)).catch((error) => {
-            console.log(error.response.data.error);
-        });
+        return axios.post(apiUrl, allListPost).then((res) => Challenge.getResultList(res))
     }
 
     /**
@@ -43,9 +41,7 @@ class Challenge {
      */
     public join(campaignId:string, challengeStructureId:string):Promise<any> {
         const joinPost:JoinBody = new JoinBody(this.sessionId, campaignId, challengeStructureId);
-        return axios.post(apiUrl, joinPost).catch((error) => {
-            console.log(error.response.data.error);
-        });
+        return axios.post(apiUrl, joinPost)
     }
 
     /**
@@ -53,9 +49,7 @@ class Challenge {
      */
     public getCurrentList():Promise<any> {
         const currentListPost:CurrentListBody = new CurrentListBody(this.sessionId);
-        return axios.post(apiUrl, currentListPost).then((res) => Challenge.getResultList(res)).catch((error) => {
-            console.log(error.response.data.error);
-        });
+        return axios.post(apiUrl, currentListPost).then((res) => Challenge.getResultList(res))
     }
 
     /**
@@ -64,11 +58,7 @@ class Challenge {
     public doTask(eventName:string, time:number, index:number):Promise<string> {
         const taskPost:TaskBody = new TaskBody(this.sessionId, eventName, time);
         console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, `开始执行 ${eventName}`);
-        return axios.post(apiUrl, taskPost).then((res) => res.data.result[0].state,
-            /* running or won */
-        ).catch((error) => {
-            console.log(error.response.data.error);
-        });
+        return axios.post(apiUrl, taskPost).then((res) => res.data.result[0].state)
     }
 }
 

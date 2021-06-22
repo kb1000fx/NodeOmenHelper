@@ -103,6 +103,7 @@ export class HandshakeBody extends BaseBody {
         super();
         this.method = "mobile.accounts.v1.handshake";
         this.params.userToken = userToken;
+        this.params.birthdate =  "1991-12-25";
     }
 }
 

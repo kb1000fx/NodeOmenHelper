@@ -40,9 +40,8 @@ class Login {
                 acr_values: "urn:hpbp:hpid",
                 prompt: "consent",
             },
-        }).then((res) => res.request.path.split("=")[1]).catch((e) => {
-            console.log(e.response.data);
-        });
+        }).then((res) => res.request.path.split("=")[1]);
+
         const res = await axios.post(backendUrl, { flow });
         const cookieSet = res.headers["set-cookie"][0];
         this.cookie = cookieSet.split(";")[0];
@@ -67,9 +66,7 @@ class Login {
                 username: `${this.email}@hpid`,
                 password: this.pwd,
             },
-        }).then((res) => res.data.nextUrl).catch((e) => {
-            console.log(e.response.data);
-        });
+        }).then((res) => res.data.nextUrl);
 
         const localhostUrl = await axios.get(nextUrl, {
             maxRedirects: 0,
@@ -91,7 +88,7 @@ class Login {
             method: "POST",
             data: `grant_type=authorization_code&code=${code}&client_id=130d43f1-bb22-4a9c-ba48-d5743e84d113&redirect_uri=http://localhost:9080/login`,
             headers: {
-                Accept: "application/json",
+                "Accept": "application/json",
                 "Content-Type": "application/x-www-form-urlencoded",
             },
 
@@ -111,10 +108,12 @@ class Login {
         }).then((res) => res.data.token);
 
         const handshakeBody:HandshakeBody = new HandshakeBody(tmpToken);
-        const { accountToken, externalPlayerId } = await axios.post("https://rpc-prod.versussystems.com/rpc", handshakeBody).then((res) => ({
-            accountToken: res.data.result.token,
-            externalPlayerId: res.data.result.players[0].externalPlayerId,
-        }));
+        const { accountToken, externalPlayerId } = await axios.post("https://rpc-prod.versussystems.com/rpc", handshakeBody).then((res) => {
+            return {
+                accountToken: res.data.result.token ,
+                externalPlayerId: res.data.result.players[0].externalPlayerId,
+            }              
+        });
 
         const startBody:StartBody = new StartBody(accountToken, externalPlayerId);
         const sessionToken:string = await axios.post("https://rpc-prod.versussystems.com/rpc", startBody).then((res) => res.data.result.sessionId);

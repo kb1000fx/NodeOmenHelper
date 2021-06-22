@@ -1,7 +1,9 @@
 import Challenge from "./lib/Challenge";
 import Login from "./lib/Login";
+import Util from "./lib/Util";
+import retry from 'async-retry';
 
-export async function doTaskViaSession(sessionId:string, time:number = 45, index:number = 1):Promise<boolean> {
+export async function doTaskViaSession(sessionId:string, time:number = 45, index:number = 1):Promise<boolean> {   
     const challenge = new Challenge(sessionId);
     console.log("\x1b[32m%s\x1b[0m%s", `账号${index}：`, "获取可参与挑战列表...");
 
@@ -41,11 +43,27 @@ export async function doTaskViaFile(config:Record<string, any>) {
     for (let index = 0; index < config.accounts.length; index += 1) {
         const account = config.accounts[index];
         console.log("\x1b[32m%s\x1b[0m", `账号${index + 1}：开始`);
-        const state = await doTaskViaAccount(account.email, account.password, config.defaultPlayTime, index + 1);
+
+        let state:boolean;
+        try {
+            state = await retry(async (bail, times)=>{
+                if(times!=1){
+                    console.log(`账号${index+1}失败，正在第${times-1}次重试`)
+                }
+
+                return doTaskViaAccount(account.email, account.password, config.defaultPlayTime, index + 1);
+            }, {retries: 2});           
+        } catch (error) {
+            console.log(error);
+            process.exit(-1);
+        }
+        
+        
         if (!state) {
             flag = state;
         }
         console.log("\x1b[32m%s\x1b[0m", `账号${index + 1}：完毕`);
+        await Util.sleep(0.1);
     }
     return flag;
 }
