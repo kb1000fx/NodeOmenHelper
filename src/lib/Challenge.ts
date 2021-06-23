@@ -55,10 +55,13 @@ class Challenge {
     /**
      * doTask
      */
-    public doTask(eventName:string, time:number, index:number):Promise<string> {
+    public doTask(eventName:string, time:number, index:number):Promise<Record<string, string|number>> {
         const taskPost:TaskBody = new TaskBody(this.sessionId, eventName, time);
         console.log("\x1b[36m%s\x1b[0m%s", `账号${index}：`, `开始执行 ${eventName}`);
-        return axios.post(apiUrl, taskPost).then((res) => res.data.result[0].state);
+        return axios.post(apiUrl, taskPost).then((res) => ({
+            state: res.data.result[0].state,
+            progress: res.data.result[0].progressPercentage,
+        }));
     }
 }
 
