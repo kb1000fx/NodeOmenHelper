@@ -27,7 +27,9 @@ async function main() {
         await doTaskViaSession(process.argv[2]);
     } else if (config) {
         if (config.schedule) {
+            console.log("\x1b[35m%s\x1b[0m", `Schedule: ${config.schedule}`);
             schedule.scheduleJob(config.schedule, async () => {
+                console.log("\x1b[35m%s\x1b[0m", Date());
                 await doAutoTask(config);
             });
         } else {

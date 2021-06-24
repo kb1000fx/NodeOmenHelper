@@ -3,7 +3,7 @@ import Challenge from "./lib/Challenge";
 import Login from "./lib/Login";
 import Util from "./lib/Util";
 
-export async function doTaskViaSession(sessionId:string, time:number = 45, index:number = 1):Promise<boolean> {
+export async function doTaskViaSession(sessionId:string, defaultTime:number = 45, index:number = 1):Promise<boolean> {
     const challenge = new Challenge(sessionId);
     console.log("\x1b[36m%s\x1b[0m%s", `账号${index}：`, "获取可参与挑战列表...");
 
@@ -20,6 +20,7 @@ export async function doTaskViaSession(sessionId:string, time:number = 45, index
 
     let flag:boolean = true;
     for (const cha of currentList) {
+        const time:number = (cha.relevantEvents === "Launch Game From GameLauncher") ? (0.01) : (defaultTime);
         const { state, progress } = await challenge.doTask(cha.relevantEvents, time, index);
         if (state === "running") {
             flag = false;
@@ -27,6 +28,7 @@ export async function doTaskViaSession(sessionId:string, time:number = 45, index
         } else {
             console.log("\x1b[36m%s\x1b[32m%s\x1b[0m", `账号${index}：`, `${cha.relevantEvents} 执行完毕`);
         }
+        await Util.sleep(0.01);
     }
 
     return flag;
@@ -65,7 +67,7 @@ export async function doTaskViaFile(config:Record<string, any>) {
                 console.log("\x1b[31m%s\x1b[0m", `账号${index + 1}：已跳过`);
                 continue;
             } else {
-                const e = (error.response) ? (error.response.data.error) : (error);
+                const e = (error.response) ? (error.response.data) : (error);
                 console.log(e);
                 process.exit(-1);
             }

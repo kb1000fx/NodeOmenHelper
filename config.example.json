@@ -2,7 +2,7 @@
     "defaultPlayTime": 45,
     "ignoreError": true,
     "retryTimes": 5,
-    "schedule": "10 * * *",
+    "schedule": "0 0 10 * * *",
     "accounts": [
         {
             "email": "123@abc.com",
