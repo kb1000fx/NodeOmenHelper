@@ -42,7 +42,7 @@ function readConfig(path:string = "config.json"):Record<string, any>|undefined {
     try {
         return JSON.parse(fs.readFileSync(path, "utf8"));
     } catch (error) {
-        console.log(error);
+        //console.log(error);
         return undefined;
     }
 }

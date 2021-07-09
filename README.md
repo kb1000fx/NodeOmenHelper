@@ -18,6 +18,8 @@ npm start <session>
 不传入session时若存在文件`config.json`会读取相应的配置文件
 
 若不存在`config.json`则会提示收到输入邮箱与密码
+### 单文件版
+为方便使用，[Release](https://github.com/kb1000fx/NodeOmenHelper/releases)页面包含了一个使用pkg打包生成的exe文件。需手动输入邮箱及密码，多账号批量运行请自行配置环境。
 ## 配置文件
 `config.json`需手动创建。但仓库中提供一个模板`config.example.json`，内容如下
 ```JSONC
